@@ -1,0 +1,19 @@
+[project]
+name = "zentrapay"
+version = "0.1.0"
+description = "This is an api layer of the currency cloud connectorto the payment service"
+readme = "README.md"
+authors = [
+    { name = "dlion4", email = "dantemilimo@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[all]>=0.135.2",
+]
+
+[project.scripts]
+zentrapay = "zentrapay:main"
+
+[build-system]
+requires = ["uv_build>=0.9.8,<0.10.0"]
+build-backend = "uv_build"
