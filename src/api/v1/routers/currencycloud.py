@@ -1,11 +1,18 @@
 from api.v1.controllers.currencycloud import (
     create_account_contact,
     create_currencycloud_account,
+    create_currencycloud_beneficiary,
+    create_currencycloud_payment,
+    delete_currencycloud_beneficiary_account,
     get_payment_charges_settings,
     retrieve_account_balance,
     retrieve_all_accounts,
     retrieve_currencycloud_account,
     retrieve_currencycloud_account_transactions,
+    retrieve_currencycloud_beneficiaries,
+    retrieve_currencycloud_beneficiary_account,
+    retrieve_currencycloud_payment,
+    retrieve_currencycloud_payments,
     retrieve_individual_contact,
     update_currencycloud_account,
     retrieve_currencycloud_account_compliance_information,
@@ -17,9 +24,14 @@ from api.v1.models.currencycloud import (
     AccountCreateModel,
     AccountFilterModel,
     AccountUpdateModel,
+    BeneficiaryCreationModel,
+    BeneficiaryDeleteModel,
+    BeneficiaryRetrievalModel,
     CompanyComplianceAccountModel,
     ContactCreateModel,
     ContactUpdateModel,
+    PaymentCreateModel,
+    PaymentRetrievalModel,
     TransactionQueryModel,
 )
 from api.v1.providers.auth import CurrencyCloudClient
@@ -180,16 +192,86 @@ async def update_contact(
     return await updated_currencycloud_contact(id, payload, client)
 
 
+## ------------------------------------------------------
+### Beneficiary MANAGEMENT PATHS
+## ------------------------------------------------------
+
+
+@router.post("/beneficiaries/create")
+async def create_beneficiary(
+    payload: BeneficiaryCreationModel,
+    client: CurrencyCloudClient = Depends(get_currencycloud_client),
+):
+    """
+    contact id(on_behalf_of): d2c17a8b-8a30-47b8-b39d-63039e144473
+    """
+    return await create_currencycloud_beneficiary(payload, client)
+
+
+@router.post("/beneficiaries/find")
+async def retrieve_beneficiaries(
+    payload: BeneficiaryRetrievalModel,
+    client: CurrencyCloudClient = Depends(get_currencycloud_client),
+):
+    """
+    Beneficiary id[0]: bfe529f3-e822-4951-857c-0d2414bb519c
+    """
+    return await retrieve_currencycloud_beneficiaries(payload, client)
+
+
+@router.get("/beneficiaries/{id}")
+async def retrieve_beneficiary_account(
+    id: str, client: CurrencyCloudClient = Depends(get_currencycloud_client)
+):
+    """
+    Beneficiary id: bfe529f3-e822-4951-857c-0d2414bb519c
+    """
+    return await retrieve_currencycloud_beneficiary_account(id, client)
+
+
+@router.delete("/beneficiaries/{id}/delete")
+async def delete_beneficiary_account(
+    id: str,
+    payload: BeneficiaryDeleteModel,
+    client: CurrencyCloudClient = Depends(get_currencycloud_client),
+):
+    """
+    on_behalf_of: bfe529f3-e822-4951-857c-0d2414bb519c
+    """
+    return await delete_currencycloud_beneficiary_account(id, payload, client)
 
 
 ## ------------------------------------------------------
 ### TRANSACTION MANAGEMENT PATHS
 ## ------------------------------------------------------
 
+
 @router.get("/transactions/find")
 async def retrieve_transactions(
-    params: TransactionQueryModel= Depends(),
-    client: CurrencyCloudClient = Depends(get_currencycloud_client)
+    params: TransactionQueryModel = Depends(),
+    client: CurrencyCloudClient = Depends(get_currencycloud_client),
 ):
     return await retrieve_currencycloud_account_transactions(params, client)
 
+
+## ------------------------------------------------------
+### PAYMENT MANAGEMENT PATHS
+## ------------------------------------------------------
+
+
+@router.post("/payments/create")
+async def payment_create(
+    payload: PaymentCreateModel,
+    client: CurrencyCloudClient = Depends(get_currencycloud_client),
+):
+    """7a184979-31b8-409e-af21-fdbf06e90790"""
+    return await create_currencycloud_payment(payload, client)
+
+@router.get("/payments/find")
+async def retrieve_payments(client: CurrencyCloudClient = Depends(get_currencycloud_client)):
+    return await retrieve_currencycloud_payments(client)
+
+
+@router.get("/payments/{id}")
+async def retrieve_payment(id: str,client: CurrencyCloudClient = Depends(get_currencycloud_client), params: PaymentRetrievalModel = Depends()):
+    return await retrieve_currencycloud_payment(id, client, params)
