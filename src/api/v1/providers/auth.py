@@ -3,14 +3,16 @@ import httpx
 from fastapi import HTTPException
 from typing import Dict, Optional
 
+
 class CurrencyCloudAuthorizationManagerProvider(CurrencyCloudProvider):
     """
     This provider will handle all the actions related with the authorization
     Rotating access_tokens etc
     """
+
     def __init__(self):
         super().__init__()
-    
+
     @staticmethod
     async def login(login_id: str, api_key: str):
         instance = CurrencyCloudAuthorizationManagerProvider()
@@ -23,10 +25,11 @@ class CurrencyCloudAuthorizationManagerProvider(CurrencyCloudProvider):
             
             These arguments must be provided
         """
-        response = await instance.initialize("POST","authenticate/api", data={"login_id": login_id, "api_key": api_key})
-        
-        return response.json()
+        response = await instance.initialize(
+            "POST", "authenticate/api", data={"login_id": login_id, "api_key": api_key}
+        )
 
+        return response.json()
 
     @staticmethod
     def extract_auth_token(response: dict) -> str:
@@ -61,10 +64,6 @@ class CurrencyCloudAuthorizationManagerProvider(CurrencyCloudProvider):
         }
 
 
-
-
-
-
 class CurrencyCloudClient(CurrencyCloudProvider):
     """
     Helper class to interact with Currency Cloud API.
@@ -83,20 +82,32 @@ class CurrencyCloudClient(CurrencyCloudProvider):
         Logs in and stores the auth token internally.
         """
         response = await CurrencyCloudAuthorizationManagerProvider.login(
-            login_id=self.login_id,
-            api_key=self.api_key
+            login_id=self.login_id, api_key=self.api_key
         )
-        self.auth_token = CurrencyCloudAuthorizationManagerProvider.extract_auth_token(response)
+        self.auth_token = CurrencyCloudAuthorizationManagerProvider.extract_auth_token(
+            response
+        )
 
     def get_headers(self) -> Dict[str, str]:
         """
         Returns headers for requests, including the auth token.
         """
         if not self.auth_token:
-            raise HTTPException(status_code=401, detail="Client not authenticated. Call `authenticate()` first.")
-        return CurrencyCloudAuthorizationManagerProvider.prepare_headers(self.auth_token)
+            raise HTTPException(
+                status_code=401,
+                detail="Client not authenticated. Call `authenticate()` first.",
+            )
+        return CurrencyCloudAuthorizationManagerProvider.prepare_headers(
+            self.auth_token
+        )
 
-    async def post(self, path: str, data: dict | None = None, timeout: int = 10) -> dict:
+    async def post(
+        self,
+        path: str,
+        data: dict | None = None,
+        params: dict | None = None,
+        timeout: int = 10,
+    ) -> dict:
         """
         Makes a POST request with automatic error handling.
         Returns JSON or raises HTTPException on failure.
@@ -104,9 +115,11 @@ class CurrencyCloudClient(CurrencyCloudProvider):
         url = f"{self.base_url}/{path}"
         async with httpx.AsyncClient(timeout=timeout) as client:
             try:
-                response = await client.post(url, json=data, headers=self.get_headers())
+                response = await client.post(
+                    url, json=data, params=params, headers=self.get_headers()
+                )
                 response.raise_for_status()
-                
+
                 return response.json()
             except httpx.HTTPStatusError as e:
                 try:
@@ -115,9 +128,13 @@ class CurrencyCloudClient(CurrencyCloudProvider):
                     detail = e.response.text
                 raise HTTPException(status_code=e.response.status_code, detail=detail)
             except httpx.RequestError as e:
-                raise HTTPException(status_code=500, detail=f"Currency Cloud request failed: {str(e)}")
+                raise HTTPException(
+                    status_code=500, detail=f"Currency Cloud request failed: {str(e)}"
+                )
 
-    async def get(self, path: str, params: dict | None = None, timeout: int = 10) -> dict:
+    async def get(
+        self, path: str, params: dict | None = None, timeout: int = 10
+    ) -> dict:
         """
         Makes a GET request with automatic error handling.
         Returns JSON or raises HTTPException on failure.
@@ -125,7 +142,9 @@ class CurrencyCloudClient(CurrencyCloudProvider):
         url = f"{self.base_url}/{path}"
         async with httpx.AsyncClient(timeout=timeout) as client:
             try:
-                response = await client.get(url, params=params, headers=self.get_headers())
+                response = await client.get(
+                    url, params=params, headers=self.get_headers()
+                )
                 response.raise_for_status()
                 return response.json()
             except httpx.HTTPStatusError as e:
@@ -135,6 +154,6 @@ class CurrencyCloudClient(CurrencyCloudProvider):
                     detail = e.response.text
                 raise HTTPException(status_code=e.response.status_code, detail=detail)
             except httpx.RequestError as e:
-                raise HTTPException(status_code=500, detail=f"Currency Cloud request failed: {str(e)}")
-
-
+                raise HTTPException(
+                    status_code=500, detail=f"Currency Cloud request failed: {str(e)}"
+                )

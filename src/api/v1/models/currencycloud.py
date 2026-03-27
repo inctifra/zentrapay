@@ -17,20 +17,15 @@ from pydantic import (
 from enum import Enum
 from pydantic import HttpUrl
 import re
+from faker import Faker
 
+from .choices import AccountOrderFilterEnum, AccountStatusFilterEnum, ContactStatusEnum, CountryEnum, AccountLegalEntityType, CurrencyEnum, TransactionScopeEnum
+
+faker = Faker()
 
 SWIFT_REGEX = re.compile(r"^[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$")
 
 
-class CountryEnum(str, Enum):
-    KE = "KE"
-    US = "US"
-    UK = "UK"
-
-
-class AccountLegalEntityType(Enum):
-    COMPANY = "company"
-    INDIVIDUAL = "individual"
 
 
 class AccountCreateModel(BaseModel):
@@ -47,10 +42,7 @@ class AccountUpdateModel(BaseModel):
     city: Optional[str] = "Nairobi"
 
 
-class CustomerRiskEnum(str, Enum):
-    LOW = "LOW"
-    MEDIUM = "MEDIUM"
-    HIGH = "HIGH"
+
 
 
 class CompanyComplianceAccountModel(BaseModel):
@@ -67,15 +59,7 @@ class CompanyComplianceAccountModel(BaseModel):
     # customer_risk: CustomerRiskEnum = CustomerRiskEnum.MEDIUM
 
 
-class AccountOrderFilterEnum(str, Enum):
-    ASCENDING = "asc"
-    DESCENDING = "desc"
 
-
-class AccountStatusFilterEnum(str, Enum):
-    DISABLED = "disabled"
-    ENABLED = "enabled"
-    ENABLED_NO_TRADING = "enabled_no_trading"
 
 
 class AccountFilterModel(BaseModel):
@@ -86,10 +70,6 @@ class AccountFilterModel(BaseModel):
 
 ### CONTACT MODELS STARTS
 
-
-class ContactStatusEnum(str, Enum):
-    ENABLED = "enabled"
-    DISABLED = "not_enabled"
 
 
 class ContactCreateModel(BaseModel):
@@ -111,35 +91,8 @@ class ContactUpdateModel(BaseModel):
 ### TRANSACTION MODELS STARTS
 
 
-class TransactionActionEnum(str, Enum):
-    CONVERSION = "conversion"
-    CONVERSION_DEPOSIT = "conversion_deposit"
-    DEPOSIT_REFUND = "deposit_refund"
-    FUNDING = "funding"
-    MARGIN = "margin"
-    MANUAL_TRANSACTION = "manual_transaction"
-    PAYMENT = "payment"
-    PAYMENT_FAILURE = "payment_failure"
-    PAYMENT_FEE = "payment_fee"
-    PAYMENT_UNRELEASE = "payment_unrelease"
-    TRANSFER = "transfer"
 
 
-class TransactionTypeEnum(str, Enum):
-    CREDIT = "credit"
-    DEBIT = "debit"
-
-
-class TransactionStatusEnum(str, Enum):
-    COMPLETED = "completed"
-    DELETED = "deleted"
-    PENDING = "pending"
-
-
-class TransactionScopeEnum(str, Enum):
-    ALL = "all"
-    CLIENTS = "clients"
-    OWN = "own"
 
 
 class TransactionQueryModel(BaseModel):
@@ -148,18 +101,20 @@ class TransactionQueryModel(BaseModel):
     # status: TransactionStatusEnum = TransactionStatusEnum.COMPLETED
     # scope: TransactionScopeEnum = TransactionScopeEnum.ALL
     # order_asc_desc: AccountOrderFilterEnum = AccountOrderFilterEnum.ASCENDING
-    on_behalf_of: str
+    # on_behalf_of: Annotated[uuid.UUID, StringConstraints(min_length=10)] = Field(
+    #     description="A contact UUID for the sub-account you're acting on behalf of.",
+    #     example="28ddfb19-7a33-45fd-ba96-2ccb6e298769",
+    # )
+    on_behalf_of: uuid.UUID | None = Field(
+        description="A contact UUID for the sub-account you're acting on behalf of.",
+        example="28ddfb19-7a33-45fd-ba96-2ccb6e298769",
+        default=None,
+    )
     # currency: str | None = "KES"
 
 
 ### PAYMENT MODELS STARTS
 
-
-class CurrencyEnum(str, Enum):
-    KES = "KES"
-    USD = "USD"
-    EUR = "EUR"
-    GBP = "GBP"
 
 
 class PaymentCreateModel(BaseModel):
@@ -171,18 +126,16 @@ class PaymentCreateModel(BaseModel):
     reference: str = Field(default_factory=generate_reference)
     unique_request_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
 
-class PaymentReviewStatusEnum(str, Enum):
-    IN_REVIEW = "in_review"
-    PASSED = "passed"
-    REJECTED = "rejected"
+
 
 class PaymentRetrievalModel(BaseModel):
     # review_status: PaymentReviewStatusEnum = PaymentReviewStatusEnum.PASSED
     on_behalf_of: str | None = None
-    with_deleted : bool = True
+    with_deleted: bool = True
 
 
-
+class PaymentAuthorizeModel(BaseModel):
+    payment_ids: list[str]
 
 
 class BeneficiaryRetrievalModel(BaseModel):
@@ -244,3 +197,36 @@ class BeneficiaryCreationModel(BaseModel):
 class BeneficiaryDeleteModel(BaseModel):
     on_behalf_of: str | None = None
 
+
+### TRANSFERS MODELS STARTS
+
+
+class TransferCreationModel(BaseModel):
+    source_account_id: str
+    destination_account_id: str
+    currency: CurrencyEnum = CurrencyEnum.KES
+    amount: float
+    reason: str = Field(default_factory=lambda: faker.sentence(nb_words=10))
+    unique_request_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+
+
+### REFERENCE MODELS STARTS
+class BeneficiaryPaymentRequirementModel(BaseModel):
+    currency: str = CurrencyEnum.KES
+    bank_account_country: Annotated[
+        str, StringConstraints(min_length=2, max_length=2)
+    ] = Field(default_factory=lambda: CountryEnum.KE)
+    on_behalf_of: str | None = None
+    beneficiary_country: Annotated[
+        str, StringConstraints(min_length=2, max_length=2)
+    ] = Field(default_factory=lambda: CountryEnum.US)
+
+    @field_validator("bank_account_country")
+    @classmethod
+    def validate_bank_account_country(cls, value: str, info):
+        return value.upper()
+
+    @field_validator("beneficiary_country")
+    @classmethod
+    def validate_beneficiary_country(cls, value: str, info):
+        return value.upper()

@@ -1,0 +1,7 @@
+POST http://localhost:8000/api/v1/currencycloud/payments/authorize?payment_ids=[28ddfb19-7a33-45fd-ba96-2ccb6e298769]
+Content-Type: application/json
+
+###
+
+GET http://localhost:8000/api/v1/currencycloud/accounts/current 
+Content-Type: application/json

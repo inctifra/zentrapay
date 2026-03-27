@@ -1,4 +1,5 @@
 from typing import Any
+from uuid import UUID
 
 from api.v1.models.currencycloud import (
     AccountCreateModel,
@@ -6,13 +7,16 @@ from api.v1.models.currencycloud import (
     AccountUpdateModel,
     BeneficiaryCreationModel,
     BeneficiaryDeleteModel,
+    BeneficiaryPaymentRequirementModel,
     BeneficiaryRetrievalModel,
     CompanyComplianceAccountModel,
     ContactCreateModel,
     ContactUpdateModel,
+    PaymentAuthorizeModel,
     PaymentCreateModel,
     PaymentRetrievalModel,
     TransactionQueryModel,
+    TransferCreationModel,
 )
 from api.v1.providers.auth import CurrencyCloudClient
 
@@ -49,6 +53,7 @@ async def update_currencycloud_account_compliance_information(
 
 
 async def retrieve_current_user_main_account(client: CurrencyCloudClient):
+    print(client)
     return await client.get("accounts/current")
 
 
@@ -88,6 +93,10 @@ async def retrieve_individual_contact(id: str, client: CurrencyCloudClient):
     return await client.get(f"contacts/{id}")
 
 
+async def retrieve_currencycloud_accounts(client: CurrencyCloudClient):
+    return await client.post("contacts/find")
+
+
 async def updated_currencycloud_contact(
     id: str, payload: ContactUpdateModel, client: CurrencyCloudClient
 ):
@@ -102,25 +111,44 @@ async def retrieve_currencycloud_account_transactions(
     return await client.get("transactions/find", params=query_params)
 
 
+async def retrieve_currencycloud_account_transaction(
+    id: UUID, params: TransactionQueryModel, client: CurrencyCloudClient
+):
+    query_params = params.model_dump(exclude_none=True, mode="json")
+    return await client.get(f"transactions/{id}", params=query_params)
+
+
 ### =================================
 # Beneficiaries controllers
 ### =================================
 
-async def create_currencycloud_beneficiary(payload:BeneficiaryCreationModel, client: CurrencyCloudClient):
+
+async def create_currencycloud_beneficiary(
+    payload: BeneficiaryCreationModel, client: CurrencyCloudClient
+):
     data = payload.model_dump(exclude_none=True, mode="json")
     return await client.post("beneficiaries/create", data)
 
-async def retrieve_currencycloud_beneficiaries(payload:BeneficiaryRetrievalModel, client: CurrencyCloudClient):
+
+async def retrieve_currencycloud_beneficiaries(
+    payload: BeneficiaryRetrievalModel, client: CurrencyCloudClient
+):
     data = payload.model_dump(exclude_none=True, mode="json")
     return await client.post("beneficiaries/find", data)
 
 
-async def retrieve_currencycloud_beneficiary_account(id: str, client: CurrencyCloudClient):
+async def retrieve_currencycloud_beneficiary_account(
+    id: str, client: CurrencyCloudClient
+):
     return await client.get(f"beneficiaries/{id}")
 
-async def delete_currencycloud_beneficiary_account(id: str, payload:BeneficiaryDeleteModel, client:CurrencyCloudClient):
+
+async def delete_currencycloud_beneficiary_account(
+    id: str, payload: BeneficiaryDeleteModel, client: CurrencyCloudClient
+):
     data = payload.model_dump(exclude_none=True, mode="json")
     return await client.post(f"beneficiaries/{id}/delete", data)
+
 
 ### =================================
 # Payment controllers
@@ -140,9 +168,72 @@ async def create_currencycloud_payment(
 async def retrieve_currencycloud_payments(client: CurrencyCloudClient):
     return await client.get("payments/find")
 
-async def retrieve_currencycloud_payment(id: str, client: CurrencyCloudClient, params: PaymentRetrievalModel|None=None):
+
+async def retrieve_currencycloud_payment(
+    id: str, client: CurrencyCloudClient, params: PaymentRetrievalModel | None = None
+):
     param = params.model_dump(exclude_none=True, mode="json")
     return await client.get(f"payments/{id}", params=param)
 
 
-    
+async def confirm_currencycloud_payment(id: str, client: CurrencyCloudClient):
+    return await client.get(f"payments/{id}/confirmation")
+
+
+async def payment_currencycloud_submission_info(id: str, client: CurrencyCloudClient):
+    return await client.get(f"payments/{id}/submission_info")
+
+
+async def authorize_currencycloud_payment(params: dict, client: CurrencyCloudClient):
+    return await client.post("payments/authorise", params)
+
+
+async def transfer_currencycloud_creation(
+    payload: TransferCreationModel, client: CurrencyCloudClient
+):
+    """_summary_
+
+    Args:
+        payload (TransferCreationModel): {
+            sender_account_id: id
+            receiver_id: id
+        }
+        client (CurrencyCloudClient): _description_
+    """
+    data = payload.model_dump(exclude_none=True, mode="json")
+    return await client.post("transfers/create", data)
+
+
+async def retrieve_currencycloud_transfer(id: str, client: CurrencyCloudClient):
+    """id: b54c933a-360c-43bb-8069-b52c0b82fecb"""
+    return await client.get(f"transfers/{id}")
+
+
+async def cancel_currencycloud_transfer(id: str, client: CurrencyCloudClient):
+    """id: b54c933a-360c-43bb-8069-b52c0b82fecb"""
+    return await client.post(f"transfers/{id}/cancel")
+
+
+async def retrieve_currencycloud_transfers(client: CurrencyCloudClient):
+    """All the transfers created by the user"""
+    return await client.get("transfers/find")
+
+
+### =================================
+# References controllers
+### =================================
+
+
+async def reference_currencycloud_settlement_account(client: CurrencyCloudClient):
+    return await client.get("reference/settlement_accounts")
+
+
+async def reference_currencycloud_currencies(client: CurrencyCloudClient):
+    return await client.get("reference/currencies")
+
+
+async def reference_currencycloud_beneficiary_required_details(
+    params: BeneficiaryPaymentRequirementModel, client: CurrencyCloudClient
+):
+    params = params.model_dump(exclude_none=True, mode="json")
+    return await client.get("reference/beneficiary_required_details", params)
