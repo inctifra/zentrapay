@@ -11,6 +11,7 @@ from api.v1.controllers.currencycloud import (
 from api.v1.dependencies.main import (
     CurrencyClientAuthorizedDep,
     CurrencyClientDep,
+    get_authorized_currency_client,
 )
 from api.v1.models.currencycloud import (
     AccountCreateModel,
@@ -18,10 +19,10 @@ from api.v1.models.currencycloud import (
     AccountUpdateModel,
     CompanyComplianceAccountModel,
 )
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 
-router = APIRouter(prefix="/accounts")
+router = APIRouter(prefix="/accounts", dependencies=[Depends(get_authorized_currency_client)])
 
 ## ------------------------------------------------------
 ### ACCOUNT RELATED PATHS
@@ -91,12 +92,11 @@ async def update_account_compliance_information(
     )
 
 
+
 @router.get("/current")
 async def retrieve_main_account(
     client: CurrencyClientDep,
-    user=CurrencyClientAuthorizedDep,
 ):
-    print("Hello people,", user)
     return await retrieve_current_user_main_account(client)
 
 

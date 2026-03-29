@@ -6,14 +6,8 @@ from api.v1.routers import currencycloud_router
 app = init_app(FastAPI)
 
 
-async def get_db():
-    # Placeholder for database connection logic
-    print("Database connection established")
-    yield
-
 
 app.include_router(
     currencycloud_router,
     prefix=f"/api/{settings.VERSION}",
-    dependencies=[Depends(get_db)],
 )
