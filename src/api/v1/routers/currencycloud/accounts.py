@@ -8,25 +8,30 @@ from api.v1.controllers.currencycloud import (
     update_currencycloud_account_compliance_information,
     retrieve_current_user_main_account,
 )
-from api.v1.dependencies.main import (
+from api.v1.dependencies import (
     CurrencyClientAuthorizedDep,
     CurrencyClientDep,
-    get_authorized_currency_client,
 )
+from config.utils.logging import logger
+from api.v1.dependencies.main import get_authorized_currency_client
 from api.v1.models.currencycloud import (
     AccountCreateModel,
     AccountFilterModel,
     AccountUpdateModel,
     CompanyComplianceAccountModel,
 )
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 
 
-router = APIRouter(prefix="/accounts", dependencies=[Depends(get_authorized_currency_client)])
+router = APIRouter(
+    prefix="/accounts",
+    dependencies=[Depends(get_authorized_currency_client)]
+)
 
 ## ------------------------------------------------------
 ### ACCOUNT RELATED PATHS
 ## ------------------------------------------------------
+
 
 
 @router.post("/")
@@ -92,18 +97,20 @@ async def update_account_compliance_information(
     )
 
 
-
 @router.get("/current")
 async def retrieve_main_account(
-    client: CurrencyClientDep,
+    request: Request,
+    client: CurrencyClientAuthorizedDep,
 ):
+    logger.info("Query params: %s", request.query_params)
+    logger.info("Client userObject: %s", client.userObject)
     return await retrieve_current_user_main_account(client)
 
 
 @router.post("/find")
 async def retrieve_accounts(
     payload: AccountFilterModel,
-    client: CurrencyClientAuthorizedDep,
+    client: "CurrencyClientAuthorizedDep",
 ):
     return await retrieve_all_accounts(payload, client)
 
@@ -118,5 +125,3 @@ async def retrieve_payment_charges_settings(id: str, client: CurrencyClientDep):
     }
     """
     return await get_payment_charges_settings(id, client)
-
-

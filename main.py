@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from config.settings.production import settings
 from app.main import init_app
 from api.v1.routers import currencycloud_router

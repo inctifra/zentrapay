@@ -76,6 +76,7 @@ class CurrencyCloudClient(CurrencyCloudProvider):
         self.api_key = api_key
         self.base_url = base_url
         self.auth_token: Optional[str] = None
+        self.userObject: Optional[dict] = None
 
     async def authenticate(self):
         """

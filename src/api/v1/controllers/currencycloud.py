@@ -1,6 +1,6 @@
-from typing import Any
 from uuid import UUID
 
+from api.v1.dependencies.main import CurrencyClientAuthorizedDep
 from api.v1.models.currencycloud import (
     AccountCreateModel,
     AccountFilterModel,
@@ -12,7 +12,6 @@ from api.v1.models.currencycloud import (
     CompanyComplianceAccountModel,
     ContactCreateModel,
     ContactUpdateModel,
-    PaymentAuthorizeModel,
     PaymentCreateModel,
     PaymentRetrievalModel,
     TransactionQueryModel,
@@ -52,8 +51,7 @@ async def update_currencycloud_account_compliance_information(
     return await client.post(f"accounts/{id}", data=data)
 
 
-async def retrieve_current_user_main_account(client: CurrencyCloudClient):
-    print(client)
+async def retrieve_current_user_main_account(client: CurrencyClientAuthorizedDep):
     return await client.get("accounts/current")
 
 
