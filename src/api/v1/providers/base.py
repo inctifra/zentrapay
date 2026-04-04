@@ -2,7 +2,7 @@ import httpx
 from config.settings.production import settings
 
 
-class CurrencyCloudProvider:
+class HttpClientProvider:
     """
     Provider to handle interactions with the Currency Cloud API.
     """

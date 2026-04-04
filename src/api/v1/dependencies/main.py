@@ -1,7 +1,7 @@
 from typing import Annotated
 from pydantic import BaseModel
 from .auth import authorize_user
-from api.v1.providers.auth import CurrencyCloudClient
+from api.v1.providers.auth import CurrencyCloudClient, NewsHttpClientAuthorizedProvider
 from api.v1.routers.common.utils import get_currencycloud_client
 from fastapi import Depends
 
@@ -22,7 +22,11 @@ async def get_authorized_currency_client(
     client.userObject = user.model_dump()
     return client
 
+def get_authorized_news_client():
+    return NewsHttpClientAuthorizedProvider()
 
 CurrencyClientAuthorizedDep = Annotated[
     CurrencyCloudClient, Depends(get_authorized_currency_client)
 ]
+
+NewsHttpClientAuthorizedProviderDep = Annotated[NewsHttpClientAuthorizedProvider, Depends(get_authorized_news_client)]
