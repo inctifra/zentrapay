@@ -1,10 +1,11 @@
-from .base import CurrencyCloudProvider
+from .base import HttpClientProvider
 import httpx
 from fastapi import HTTPException
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
+from src.config.settings.production import settings
 
 
-class CurrencyCloudAuthorizationManagerProvider(CurrencyCloudProvider):
+class CurrencyCloudAuthorizationManagerProvider(HttpClientProvider):
     """
     This provider will handle all the actions related with the authorization
     Rotating access_tokens etc
@@ -64,7 +65,7 @@ class CurrencyCloudAuthorizationManagerProvider(CurrencyCloudProvider):
         }
 
 
-class CurrencyCloudClient(CurrencyCloudProvider):
+class CurrencyCloudClient(HttpClientProvider):
     """
     Helper class to interact with Currency Cloud API.
     Handles login, token management, HTTP requests, and automatic error handling.
@@ -158,3 +159,27 @@ class CurrencyCloudClient(CurrencyCloudProvider):
                 raise HTTPException(
                     status_code=500, detail=f"Currency Cloud request failed: {str(e)}"
                 )
+
+
+class NewsHttpClientAuthorizedProvider(HttpClientProvider):
+    def __init__(self):
+        super().__init__()
+        self.base_url = settings.NEWS_BASE_URL
+    
+    async def get(self, path: str, params: dict):
+        _params = {**params, "apiKey": settings.NEWS_API_KEY}
+        try:
+            response = await self.initialize("GET", path, _params)
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPStatusError as e:
+            detail = e.response.json()
+            try:
+                detail = e.response.text
+            except ValueError as e:
+                raise HTTPException(status_code=e.response.status_code, detail=detail)
+            raise HTTPException(status_code=e.response.status_code, detail=detail)
+    
+    
+    
+    

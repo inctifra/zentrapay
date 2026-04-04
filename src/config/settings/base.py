@@ -8,4 +8,7 @@ class _BaseSetting(BaseSettings):
     model_config = SettingsConfigDict(env_file=str(BASE_DIR.parent / ".env"))
     DEBUG: bool = True
     VERSION: str = "v1"
+    
+    DATABASE_URL: str
+    
 

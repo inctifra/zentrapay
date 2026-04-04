@@ -73,3 +73,20 @@ class PaymentReviewStatusEnum(str, Enum):
     PASSED = "passed"
     REJECTED = "rejected"
 
+
+
+
+class NewsCategoryEnum(str, Enum):
+    business = "business"
+    entertainment = "entertainment"
+    general = "general"
+    health = "health"
+    science = "science"
+    sports = "sports"
+    technology = "technology"
+
+
+class NewsFilterModelEnum(str, Enum):
+    title = "title"
+    description = "description"
+    content = "content"
