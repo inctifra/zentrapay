@@ -1,0 +1,2 @@
+scripts:
+  fastapidev: fastapi dev --entrypoint="main:app" --port=8080 --host=localhost

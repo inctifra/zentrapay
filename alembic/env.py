@@ -4,8 +4,8 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from sqlmodel import SQLModel
 from alembic import context
-from src.models.tables import Session  # noqa: F401
-from src.config.settings.production import settings
+from zentrapay.models.tables import Session  # noqa: F401
+from zentrapay.config.settings.production import settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -40,7 +40,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-   
+
     url = config.get_main_option("sqlalchemy.url")
     context.execute()
     print("#===============================================#")
