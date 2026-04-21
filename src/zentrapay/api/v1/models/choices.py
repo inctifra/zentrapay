@@ -94,3 +94,14 @@ class NewsFilterModelEnum(str, Enum):
 class FEchangeEnum(str, Enum):
     BUY="buy"
     SELL="sell"
+
+
+class PaymentType(str, Enum):
+    priority = "priority"
+    regular = "regular"
+
+
+class FundingAction(str, Enum):
+    approve = "approve"
+    reject = "reject"
+

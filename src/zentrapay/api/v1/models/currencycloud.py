@@ -2,6 +2,7 @@ from decimal import Decimal
 from typing import Annotated, Optional
 import uuid
 
+from zentrapay.api.v1.models.libs.ordering import OrderingParams, PaginationParams
 from zentrapay.api.v1.models.utils import generate_reference
 from zentrapay.api.v1.services.utils.account import (
     generate_account_number_with_checksum,
@@ -15,7 +16,6 @@ from pydantic import (
     field_validator,
     model_validator,
 )
-from enum import Enum
 from pydantic import HttpUrl
 import re
 from faker import Faker
@@ -28,6 +28,8 @@ from .choices import (
     AccountLegalEntityType,
     CurrencyEnum,
     FEchangeEnum,
+    FundingAction,
+    PaymentType,
     TransactionScopeEnum,
 )
 
@@ -53,6 +55,7 @@ class AccountUpdateModel(BaseModel):
 class CompanyComplianceAccountModel(BaseModel):
     industry_type: str = "General"
     # trading_address_street: str = "Lithuli Avenue"
+    country_of_incorporation: str = "KE"
     business_website_url: HttpUrl = "https://pkenya.co.ke"
     # date_of_incorporation: str = dt.today().isoformat()
     # business_website_url: Optional[HttpUrl] = None
@@ -243,3 +246,61 @@ class FEchangeQueryModal(BaseModel):
     @classmethod
     def validate_sell_currency(cls, value: str, info):
         return value.upper()
+
+
+class SSIFundingAccountQueryParams(PaginationParams, OrderingParams):
+    payment_type: Optional[PaymentType] = Field(
+        default_factory=PaymentType.regular,
+        description="priority (Swift) or regular (local). None returns all.",
+    )
+
+    currency: Annotated[
+        CurrencyEnum,
+        StringConstraints(
+            max_length=3, min_length=3, strip_whitespace=True, to_upper=True
+        ),
+    ] = Field(default=CurrencyEnum.KES, description="ISO 4217 currency code")
+
+    account_id: Optional[str] = None
+    on_behalf_of: Optional[str] = None
+
+
+class InboundFundingRequest(BaseModel):
+    id: uuid.UUID = Field(default=uuid.uuid4, description="Transaction id")
+    receiver_account_number: str = Field(
+        ..., description="Client virtual or sub-account number"
+    )
+    amount: float = Field(..., gt=0, description="Transaction amount")
+    currency: Annotated[
+        CurrencyEnum,
+        StringConstraints(
+            max_length=3, min_length=3, strip_whitespace=True, to_upper=True
+        ),
+    ] = Field(default=CurrencyEnum.KES, description="ISO 4217 currency code")
+
+    sender_name: Optional[str] = Field(None, description="Sender's name")
+    sender_address: Optional[str] = Field(None, description="Sender's address")
+    sender_country: Annotated[
+        CountryEnum,
+        StringConstraints(
+            max_length=2, min_length=2, strip_whitespace=True, to_upper=True
+        ),
+    ] = Field(default=CountryEnum.KE, description="ISO 2-letter country code")
+
+    sender_reference: Optional[str] = Field(None, description="Sender reference")
+    sender_account_number: Optional[str] = Field(
+        None, description="Sender account number"
+    )
+    sender_routing_code: Optional[str] = Field(None, description="Sender routing code")
+
+    receiver_routing_code: Optional[str] = Field(
+        None, description="Receiver routing code"
+    )
+
+    action: Optional[FundingAction] = Field(
+        None, description="Approve or reject emulated transaction"
+    )
+    on_behalf_of: uuid.UUID = Field(
+        ..., description="Contact UUID when acting on behalf of sub-account"
+    )
+

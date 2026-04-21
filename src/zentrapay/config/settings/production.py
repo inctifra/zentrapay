@@ -17,7 +17,7 @@ class ProductionSettings(_BaseSetting):
     NEWS_BASE_URL: str
     NEWS_API_KEY: str
 
-    ENV: ENVEnum = ENVEnum.DEVELOPMENT
+    ENV: ENVEnum = ENVEnum.LOCAL
 
 
 settings = ProductionSettings()

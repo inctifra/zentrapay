@@ -9,7 +9,8 @@ from .currencycloud import (
     payments_router,
     transfers_router,
     references_router,
-    fx_router
+    fx_router,
+    funding_router
 )
 
 
@@ -44,6 +45,11 @@ router.include_router(transactions_router, tags=["Transactions"])
 
 
 ## ------------------------------------------------------
+### FUNDING HANDLING PATHS
+## ------------------------------------------------------
+router.include_router(funding_router, tags=["Funding"])
+
+## ------------------------------------------------------
 ### PAYMENT MANAGEMENT PATHS
 ## ------------------------------------------------------
 router.include_router(payments_router, tags=["Payments"])
@@ -63,3 +69,4 @@ router.include_router(references_router, tags=["References"])
 ### Foreign Exchange Rates PATHS
 ## ------------------------------------------------------
 router.include_router(fx_router, tags=["Foreign Exchange Rates"])
+

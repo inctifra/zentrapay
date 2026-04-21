@@ -13,18 +13,18 @@ from zentrapay.api.v1.dependencies import (
     CurrencyClientDep,
 )
 from zentrapay.config.utils.logging import logger
-from zentrapay.api.v1.dependencies.main import get_authorized_currency_client
 from zentrapay.api.v1.models.currencycloud import (
     AccountCreateModel,
     AccountFilterModel,
     AccountUpdateModel,
     CompanyComplianceAccountModel,
 )
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Request
 
 
 router = APIRouter(
-    prefix="/accounts", dependencies=[Depends(get_authorized_currency_client)]
+    prefix="/accounts",
+    # dependencies=[Depends(get_authorized_currency_client)]
 )
 
 ## ------------------------------------------------------
@@ -81,7 +81,7 @@ async def retrieve_account_compliance_information(
     return await retrieve_currencycloud_account_compliance_information(id, client)
 
 
-@router.post("/{id}/compliance-settings")
+@router.patch("/{id}/compliance-settings")
 async def update_account_compliance_information(
     id: str,
     payload: CompanyComplianceAccountModel,

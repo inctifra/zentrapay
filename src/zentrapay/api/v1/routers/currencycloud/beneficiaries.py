@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from fastapi.params import Depends
 from zentrapay.api.v1.controllers.currencycloud import (
     create_currencycloud_beneficiary,
     delete_currencycloud_beneficiary_account,
@@ -28,10 +29,10 @@ async def create_beneficiary(
     return await create_currencycloud_beneficiary(payload, client)
 
 
-@router.post("/find")
+@router.get("/find")
 async def retrieve_beneficiaries(
-    payload: BeneficiaryRetrievalModel,
     client: CurrencyClientDep,
+    payload: BeneficiaryRetrievalModel = Depends(),
 ):
     """
     Beneficiary id[0]: bfe529f3-e822-4951-857c-0d2414bb519c

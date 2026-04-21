@@ -14,4 +14,12 @@ Content-Type: application/json
 X-Authorization: X-ZP-KEY my-valid-token
 
 
+### GET DARAJA TOKEN
+
+@url = https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials
+@auth = ''
+# @auth = ZWpyNEtGUkJFYzc2ZmRBVjR1cWRHQ2JxWGlxM3dJNG43bTVIRFE2TFdyR3J1elpTOndORTJqR3VHUlhSUmp6dGtqcTJnRjE5WFRBeVBiUTlTQXJGU1RHYVBKQVNHZEMwbGJqWDZGT2tlRHhmekhHaUc
+
+GET {{url}}
+Authorization: Basic {{auth}}
 

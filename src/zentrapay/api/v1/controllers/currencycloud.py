@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from zentrapay.api.v1.dependencies.main import CurrencyClientAuthorizedDep
+from zentrapay.api.v1.controllers.helpers import account_compliance_retrieve, account_post_action
 from zentrapay.api.v1.models.currencycloud import (
     AccountCreateModel,
     AccountFilterModel,
@@ -13,8 +13,10 @@ from zentrapay.api.v1.models.currencycloud import (
     ContactCreateModel,
     ContactUpdateModel,
     FEchangeQueryModal,
+    InboundFundingRequest,
     PaymentCreateModel,
     PaymentRetrievalModel,
+    SSIFundingAccountQueryParams,
     TransactionQueryModel,
     TransferCreationModel,
 )
@@ -36,23 +38,26 @@ async def update_currencycloud_account(
     id: str, payload: AccountUpdateModel, client: CurrencyCloudClient
 ):
     data = payload.model_dump(mode="json")
-    return await client.post(f"accounts/{id}", data=data)
+    return await account_post_action(client, id, data)
 
 
 async def retrieve_currencycloud_account_compliance_information(
     id: str, client: CurrencyCloudClient
 ):
-    return await client.get(f"accounts/{id}/compliance_settings")
+    return await account_compliance_retrieve(id, client)
 
 
 async def update_currencycloud_account_compliance_information(
     id: str, payload: CompanyComplianceAccountModel, client: CurrencyCloudClient
 ):
     data = payload.model_dump(mode="json")
-    return await client.post(f"accounts/{id}", data=data)
+    account = await account_post_action(client, id, data)
+    compliance = await account_compliance_retrieve(id, client)
+    response = {**account, "compliance": compliance}
+    return response
 
 
-async def retrieve_current_user_main_account(client: CurrencyClientAuthorizedDep):
+async def retrieve_current_user_main_account(client: CurrencyCloudClient):
     return await client.get("accounts/current")
 
 
@@ -256,3 +261,24 @@ async def fx_realtime_exchange_rate_detailed_information(
 ):
     _params = params.model_dump(exclude_none=True, mode="json")
     return await client.get("rates/detailed", params=_params)
+
+
+
+
+### =================================
+# Funding controllers
+### =================================
+async def funding_accounts(
+    params: SSIFundingAccountQueryParams,
+    client: CurrencyCloudClient
+):
+    _params = params.model_dump(exclude_none=True, mode="json")
+    return await client.get("funding_accounts/find", params=_params)
+
+# 2: create inbound funding to acount
+async def inbound_fund_account(
+    payload: InboundFundingRequest,
+    client: CurrencyCloudClient
+):
+    data = payload.model_dump(mode="json")
+    return await client.post("demo/funding/create", data=data)

@@ -7,7 +7,7 @@ from .transfers import router as transfers_router
 from .references import router as references_router
 from .payments import router as payments_router
 from .fx import router as fx_router
-
+from .funding import router as funding_router
 __all__ = [
     "account_router",
     "balances_router",
